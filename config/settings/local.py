@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from .base import *  # noqa
 from .base import env
 
@@ -11,7 +13,7 @@ SECRET_KEY = env(
     default="XgO9NMQfMY5CNeVNh98WrKRXiQZnvtPzHJrF9ROPhAFLVEG1FvDD2ZRKTdJKVu8p",
 )
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1"]
+ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "dev.akarpov.ru"]
 
 # CACHES
 # ------------------------------------------------------------------------------
@@ -64,5 +66,9 @@ INSTALLED_APPS += ["django_extensions"]  # noqa F405
 
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#task-eager-propagates
 CELERY_TASK_EAGER_PROPAGATES = True
-# Your stuff...
-# ------------------------------------------------------------------------------
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=10000),
+}
+
+CORS_ALLOW_ALL_ORIGINS = True
