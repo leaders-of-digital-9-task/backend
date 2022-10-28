@@ -1,9 +1,15 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics
+from rest_framework.generics import get_object_or_404
 from rest_framework.parsers import FormParser, MultiPartParser
 
-from ..models import Dicom
-from .serializers import DicomSerializer, ListDicomSerializer
+from ..models import Circle, Dicom, Polygon
+from .serializers import (
+    CircleSerializer,
+    DicomSerializer,
+    ListDicomSerializer,
+    PolygonSerializer,
+)
 
 
 class ListCreateDicomApi(generics.ListCreateAPIView):
@@ -34,3 +40,43 @@ class RetrieveUpdateDeleteDicomApi(generics.RetrieveUpdateDestroyAPIView):
     parser_classes = [MultiPartParser, FormParser]
 
     lookup_field = "slug"
+
+
+class CreatePolygonApi(generics.CreateAPIView):
+    serializer_class = PolygonSerializer
+
+
+class CreateCircleApi(generics.CreateAPIView):
+    serializer_class = CircleSerializer
+
+
+class RetrieveUpdateDeletePolygonApi(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = PolygonSerializer
+
+    def get_object(self):
+        return get_object_or_404(
+            Polygon, id=self.request.parser_context["kwargs"]["id"]
+        )
+
+    @extend_schema(description="Note: coordinated are dropped on update")
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    @extend_schema(description="Note: coordinated are dropped on update")
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+
+class RetrieveUpdateDeleteCircleApi(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = CircleSerializer
+
+    def get_object(self):
+        return get_object_or_404(Circle, id=self.request.parser_context["kwargs"]["id"])
+
+    @extend_schema(description="Note: coordinated are dropped on update")
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+    @extend_schema(description="Note: coordinated are dropped on update")
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
