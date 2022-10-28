@@ -27,7 +27,7 @@ class ListDicomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Dicom
-        fields = ["file", "uploaded", "url"]
+        fields = ["file", "uploaded", "pathology_type", "url"]
 
     def create(self, validated_data):
         return Dicom.objects.create(**validated_data, user=self.context["request"].user)
@@ -49,7 +49,7 @@ class DicomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Dicom
-        fields = ["file", "uploaded", "shapes"]
+        fields = ["file", "uploaded", "pathology_type", "shapes"]
 
 
 class PolygonSerializer(serializers.ModelSerializer):
