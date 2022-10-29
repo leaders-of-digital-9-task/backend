@@ -19,8 +19,8 @@ class BaseShape(PolymorphicModel):
 
 
 class Coordinate(models.Model):
-    x = models.IntegerField()
-    y = models.IntegerField()
+    x = models.FloatField()
+    y = models.FloatField()
 
     shape = models.ForeignKey(
         to=BaseShape,

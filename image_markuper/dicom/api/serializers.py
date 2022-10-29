@@ -112,3 +112,7 @@ class CircleSerializer(serializers.ModelSerializer):
             obj.radius = validated_data["radius"]
             obj.save()
         return obj
+
+
+class SmartFileUploadSerializer(serializers.ModelSerializer):
+    file = serializers.FileField()

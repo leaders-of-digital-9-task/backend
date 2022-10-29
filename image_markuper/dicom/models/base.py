@@ -6,6 +6,10 @@ from utils.files import media_upload_path
 User = get_user_model()
 
 
+class ListOfDicom(models.Model):
+    pass
+
+
 class Dicom(models.Model):
     class PathologyType(models.IntegerChoices):
         no_pathology = 0, "Без патологий"
@@ -17,7 +21,10 @@ class Dicom(models.Model):
     file = models.FileField(upload_to=media_upload_path)
     uploaded = models.DateTimeField(auto_now_add=True)
 
-    pathology_type = models.IntegerField(choices=PathologyType.choices)
+    pathology_type = models.IntegerField(choices=PathologyType.choices, default=0)
+    list = models.ForeignKey(
+        ListOfDicom, related_name="files", null=True, on_delete=models.SET_NULL
+    )
 
     def __str__(self):
         return self.file.name

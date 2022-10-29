@@ -5,6 +5,7 @@ from dicom.api.views import (
     RetrieveUpdateDeleteCircleApi,
     RetrieveUpdateDeleteDicomApi,
     RetrieveUpdateDeletePolygonApi,
+    SmartFileUploadApi,
 )
 from django.urls import include, path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -26,6 +27,7 @@ urlpatterns = [
         include(
             [
                 path("", ListCreateDicomApi.as_view(), name="list_create_dicom"),
+                path("upload", SmartFileUploadApi.as_view(), name="upload_dicom_api"),
                 path(
                     "<str:slug>",
                     RetrieveUpdateDeleteDicomApi.as_view(),
