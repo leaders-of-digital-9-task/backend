@@ -1,10 +1,10 @@
 from dicom.api.views import (
     CreateCircleApi,
-    CreatePolygonApi,
+    CreateroiApi,
     ListCreateDicomApi,
     RetrieveUpdateDeleteCircleApi,
     RetrieveUpdateDeleteDicomApi,
-    RetrieveUpdateDeletePolygonApi,
+    RetrieveUpdateDeleteroiApi,
     SmartFileUploadApi,
 )
 from django.urls import include, path
@@ -34,9 +34,9 @@ urlpatterns = [
                     name="get_update_delete_dicom",
                 ),
                 path(
-                    "<str:slug>/polygon",
-                    CreatePolygonApi.as_view(),
-                    name="create_polygon",
+                    "<str:slug>/Roi",
+                    CreateroiApi.as_view(),
+                    name="create_roi",
                 ),
                 path(
                     "<str:slug>/circle",
@@ -51,9 +51,9 @@ urlpatterns = [
         include(
             [
                 path(
-                    "polygon/<int:id>",
-                    RetrieveUpdateDeletePolygonApi.as_view(),
-                    name="get_update_delete_polygon",
+                    "Roi/<int:id>",
+                    RetrieveUpdateDeleteroiApi.as_view(),
+                    name="get_update_delete_roi",
                 ),
                 path(
                     "circle/<int:id>",

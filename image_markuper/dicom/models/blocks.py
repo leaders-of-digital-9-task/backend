@@ -47,14 +47,14 @@ class Circle(BaseShape):
         return f"circle on {self.dicom.file.name}"
 
 
-class Polygon(BaseShape):
+class Roi(BaseShape):
     def serialize_self(self):
         return {
             "id": self.id,
-            "type": "polygon",
+            "type": "Roi",
             "image_number": self.image_number,
             "coordinates": self.coordinates,
         }
 
     def __str__(self):
-        return f"polygon on {self.dicom.file.name}"
+        return f"Roi on {self.dicom.file.name}"

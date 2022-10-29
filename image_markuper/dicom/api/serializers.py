@@ -1,4 +1,4 @@
-from dicom.models import Circle, Coordinate, Dicom, Polygon
+from dicom.models import Circle, Coordinate, Dicom, Roi
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
@@ -34,7 +34,7 @@ class ListDicomSerializer(serializers.ModelSerializer):
 
 
 class BaseShapeSerializer(serializers.Serializer):
-    type = serializers.ChoiceField(choices=["circle", "polygon"])
+    type = serializers.ChoiceField(choices=["circle", "Roi"])
     image_number = serializers.IntegerField()
     coordinates = CoordinateSerializer(many=True)
 
@@ -52,11 +52,11 @@ class DicomSerializer(serializers.ModelSerializer):
         fields = ["file", "uploaded", "pathology_type", "shapes"]
 
 
-class PolygonSerializer(serializers.ModelSerializer):
+class RoiSerializer(serializers.ModelSerializer):
     coordinates = CoordinateSerializer(many=True)
 
     class Meta:
-        model = Polygon
+        model = Roi
         fields = ["id", "image_number", "coordinates"]
         extra_kwargs = {"id": {"read_only": True}}
 
@@ -66,12 +66,12 @@ class PolygonSerializer(serializers.ModelSerializer):
         dicom = get_object_or_404(
             Dicom, slug=self.context["request"].parser_context["kwargs"]["slug"]
         )
-        polygon = Polygon.objects.create(
+        roi = Roi.objects.create(
             dicom=dicom, image_number=validated_data["image_number"]
         )
 
-        create_coordinate(validated_data["coordinates"], polygon)
-        return polygon
+        create_coordinate(validated_data["coordinates"], roi)
+        return roi
 
     def update(self, obj: Circle, validated_data):
         Coordinate.objects.filter(shape=obj).delete()
@@ -114,5 +114,5 @@ class CircleSerializer(serializers.ModelSerializer):
         return obj
 
 
-class SmartFileUploadSerializer(serializers.ModelSerializer):
+class SmartFileUploadSerializer(serializers.Serializer):
     file = serializers.FileField()

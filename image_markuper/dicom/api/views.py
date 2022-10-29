@@ -1,18 +1,18 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.exceptions import ValidationError
-from rest_framework.generics import get_object_or_404
+from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
-from ..models import Circle, Dicom, Polygon
+from ..models import Circle, Dicom, Roi
 from ..services import process_files
 from .serializers import (
     CircleSerializer,
     DicomSerializer,
     ListDicomSerializer,
-    PolygonSerializer,
+    RoiSerializer,
+    SmartFileUploadSerializer,
 )
 
 
@@ -34,21 +34,19 @@ class RetrieveUpdateDeleteDicomApi(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = "slug"
 
 
-class CreatePolygonApi(generics.CreateAPIView):
-    serializer_class = PolygonSerializer
+class CreateroiApi(generics.CreateAPIView):
+    serializer_class = RoiSerializer
 
 
 class CreateCircleApi(generics.CreateAPIView):
     serializer_class = CircleSerializer
 
 
-class RetrieveUpdateDeletePolygonApi(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = PolygonSerializer
+class RetrieveUpdateDeleteroiApi(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = RoiSerializer
 
     def get_object(self):
-        return get_object_or_404(
-            Polygon, id=self.request.parser_context["kwargs"]["id"]
-        )
+        return get_object_or_404(Roi, id=self.request.parser_context["kwargs"]["id"])
 
     @extend_schema(description="Note: coordinated are dropped on update")
     def put(self, request, *args, **kwargs):
@@ -74,9 +72,11 @@ class RetrieveUpdateDeleteCircleApi(generics.RetrieveUpdateDestroyAPIView):
         return self.update(request, *args, **kwargs)
 
 
-class SmartFileUploadApi(APIView):
+class SmartFileUploadApi(GenericAPIView):
     parser_classes = [MultiPartParser, FormParser]
+    serializer_class = SmartFileUploadSerializer
 
+    @extend_schema(responses={201: DicomSerializer(many=True)})
     def post(self, request):
         if "file" not in request.data:
             raise ValidationError("no files")
@@ -85,3 +85,7 @@ class SmartFileUploadApi(APIView):
             DicomSerializer(d_list.files.all(), many=True).data,
             status=status.HTTP_201_CREATED,
         )
+
+
+class UpdateDicomLayerApi(GenericAPIView):
+    serializer_class = SmartFileUploadSerializer
