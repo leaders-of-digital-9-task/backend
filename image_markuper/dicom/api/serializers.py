@@ -34,8 +34,14 @@ class ListDicomSerializer(serializers.ModelSerializer):
 
 
 class BaseShapeSerializer(serializers.Serializer):
-    type = serializers.ChoiceField(choices=["circle", "Roi"])
+    type = serializers.ChoiceField(choices=["circle", "roi"])
     image_number = serializers.IntegerField()
+    coordinates = CoordinateSerializer(many=True)
+
+
+class BaseShapeLayerSerializer(serializers.Serializer):
+    type = serializers.ChoiceField(choices=["circle", "roi"])
+    radius = serializers.FloatField(required=False)
     coordinates = CoordinateSerializer(many=True)
 
 

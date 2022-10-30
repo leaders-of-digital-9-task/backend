@@ -32,13 +32,21 @@ class Coordinate(models.Model):
 
 
 class Circle(BaseShape):
-    radius = models.IntegerField()
+    radius = models.FloatField()
 
     def serialize_self(self):
         return {
             "id": self.id,
             "type": "circle",
             "image_number": self.image_number,
+            "radius": self.radius,
+            "coordinates": self.coordinates,
+        }
+
+    def serialize_self_without_layer(self):
+        return {
+            "id": self.id,
+            "type": "circle",
             "radius": self.radius,
             "coordinates": self.coordinates,
         }
@@ -51,8 +59,16 @@ class Roi(BaseShape):
     def serialize_self(self):
         return {
             "id": self.id,
-            "type": "Roi",
+            "type": "roi",
             "image_number": self.image_number,
+            "coordinates": self.coordinates,
+        }
+
+    def serialize_self_without_layer(self):
+        return {
+            "id": self.id,
+            "type": "roi",
+            "radius": self.radius,
             "coordinates": self.coordinates,
         }
 
