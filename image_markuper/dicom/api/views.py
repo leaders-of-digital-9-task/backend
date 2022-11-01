@@ -5,15 +5,19 @@ from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
-from ..models import Circle, Dicom, Roi
+from ..models import Circle, Dicom, Project, Roi
 from ..services import process_files
 from .serializers import (
     BaseShapeLayerSerializer,
     BaseShapeSerializer,
     CircleSerializer,
     DicomSerializer,
+    FreeHandSerializer,
     ListDicomSerializer,
+    ListProjectSerializer,
+    ProjectSerializer,
     RoiSerializer,
+    RulerSerializer,
     SmartFileUploadSerializer,
     create_coordinate,
 )
@@ -41,52 +45,107 @@ class CreateRoiApi(generics.CreateAPIView):
     serializer_class = RoiSerializer
 
 
+class CreateFreeHandApi(generics.CreateAPIView):
+    serializer_class = FreeHandSerializer
+
+
 class CreateCircleApi(generics.CreateAPIView):
     serializer_class = CircleSerializer
 
 
-class RetrieveUpdateDeleteRoiApi(generics.RetrieveUpdateDestroyAPIView):
+class CreateRulerApi(generics.CreateAPIView):
+    serializer_class = RulerSerializer
+
+
+class RetrieveUpdateDeleteBaseShape(generics.RetrieveUpdateDestroyAPIView):
+    def get_object(self):
+        return get_object_or_404(
+            self.serializer_class.Meta.model,
+            id=self.request.parser_context["kwargs"]["id"],
+        )
+
+    @extend_schema(description="Note: coordinated are dropped on update")
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    @extend_schema(description="Note: coordinated are dropped on update")
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+
+class RetrieveUpdateDeleteRoiApi(RetrieveUpdateDeleteBaseShape):
     serializer_class = RoiSerializer
 
-    def get_object(self):
-        return get_object_or_404(Roi, id=self.request.parser_context["kwargs"]["id"])
 
-    @extend_schema(description="Note: coordinated are dropped on update")
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
-    @extend_schema(description="Note: coordinated are dropped on update")
-    def patch(self, request, *args, **kwargs):
-        return self.partial_update(request, *args, **kwargs)
+class RetrieveUpdateDeleteFreeHandApi(RetrieveUpdateDeleteBaseShape):
+    serializer_class = FreeHandSerializer
 
 
-class RetrieveUpdateDeleteCircleApi(generics.RetrieveUpdateDestroyAPIView):
+class RetrieveUpdateDeleteCircleApi(RetrieveUpdateDeleteBaseShape):
     serializer_class = CircleSerializer
 
-    def get_object(self):
-        return get_object_or_404(Circle, id=self.request.parser_context["kwargs"]["id"])
 
-    @extend_schema(description="Note: coordinated are dropped on update")
-    def patch(self, request, *args, **kwargs):
-        return self.partial_update(request, *args, **kwargs)
-
-    @extend_schema(description="Note: coordinated are dropped on update")
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
+class RetrieveUpdateDeleteRulerApi(RetrieveUpdateDeleteBaseShape):
+    serializer_class = CircleSerializer
 
 
 class SmartFileUploadApi(GenericAPIView):
     parser_classes = [MultiPartParser, FormParser]
     serializer_class = SmartFileUploadSerializer
 
-    @extend_schema(responses={201: DicomSerializer(many=True)})
+    @extend_schema(responses={201: ListDicomSerializer(many=True)})
     def post(self, request):
         if "file" not in request.data:
             raise ValidationError("no files")
-        d_list = process_files(request.FILES.getlist("file"), request.user)
+        project = process_files(
+            request.FILES.getlist("file"),
+            request.user,
+        )
         return Response(
-            DicomSerializer(d_list.files.all(), many=True).data,
+            ListDicomSerializer(project.files.all(), many=True).data,
             status=status.HTTP_201_CREATED,
+        )
+
+
+class AddDicomProjectApi(GenericAPIView):
+    parser_classes = [MultiPartParser, FormParser]
+    serializer_class = SmartFileUploadSerializer
+
+    @extend_schema(
+        operation_id="add_dicom_to_project",
+        responses={201: ListDicomSerializer(many=True)},
+    )
+    def post(self, request, slug):
+        if "file" not in request.data:
+            raise ValidationError("no files")
+        get_object_or_404(Project, slug=slug)
+        project = process_files(
+            request.FILES.getlist("file"),
+            request.user,
+            slug,
+        )
+        return Response(
+            ListDicomSerializer(project.files.all(), many=True).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class DeleteDicomProjectApi(GenericAPIView):
+    serializer_class = SmartFileUploadSerializer
+
+    @extend_schema(
+        operation_id="add_dicom_to_project",
+        request=None,
+        responses={200: ListDicomSerializer(many=True)},
+    )
+    def delete(self, request, slug, dicom_slug):
+        project = get_object_or_404(Project, slug=slug)
+        project.files.filter(slug=dicom_slug).delete()
+        return Response(
+            ListDicomSerializer(
+                project.files.all(), many=True, context={"request": request}
+            ).data,
+            status=status.HTTP_200_OK,
         )
 
 
@@ -134,3 +193,27 @@ class ListUpdateDicomImageNumberApi(GenericAPIView):
             )
         ]
         return Response(shapes, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        request=None,
+        responses={204: None},
+        operation_id="delete_dicom_layer",
+    )
+    def delete(self, request, slug, layer):
+        dicom = get_object_or_404(Dicom, slug=slug)
+        dicom.shapes.filter(image_number=layer).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ListCreateProjectApi(generics.ListCreateAPIView):
+    serializer_class = ListProjectSerializer
+
+    def get_queryset(self):
+        return Project.objects.filter(user=self.request.user)
+
+
+class RetrieveUpdateDeleteProjectApi(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ProjectSerializer
+    queryset = Project.objects.all()
+
+    lookup_field = "slug"

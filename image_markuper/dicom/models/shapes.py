@@ -4,11 +4,26 @@ from polymorphic.models import PolymorphicModel
 
 
 class BaseShape(PolymorphicModel):
+    TYPE = "no_type"
+    min_coordinates = None
+    max_coordinates = None
     dicom = models.ForeignKey(Dicom, related_name="shapes", on_delete=models.CASCADE)
     image_number = models.IntegerField()
 
     def serialize_self(self):
-        raise NotImplementedError
+        return {
+            "id": self.id,
+            "type": self.TYPE,
+            "image_number": self.image_number,
+            "coordinates": self.coordinates,
+        }
+
+    def serialize_self_without_layer(self):
+        return {
+            "id": self.id,
+            "type": self.TYPE,
+            "coordinates": self.coordinates,
+        }
 
     @property
     def coordinates(self) -> [(int, int)]:
@@ -33,6 +48,7 @@ class Coordinate(models.Model):
 
 class Circle(BaseShape):
     radius = models.FloatField()
+    max_coordinates = 1
 
     def serialize_self(self):
         return {
@@ -56,21 +72,23 @@ class Circle(BaseShape):
 
 
 class Roi(BaseShape):
-    def serialize_self(self):
-        return {
-            "id": self.id,
-            "type": "roi",
-            "image_number": self.image_number,
-            "coordinates": self.coordinates,
-        }
-
-    def serialize_self_without_layer(self):
-        return {
-            "id": self.id,
-            "type": "roi",
-            "radius": self.radius,
-            "coordinates": self.coordinates,
-        }
+    TYPE = "roi"
 
     def __str__(self):
         return f"Roi on {self.dicom.file.name}"
+
+
+class FreeHand(BaseShape):
+    TYPE = "free_hand"
+
+    def __str__(self):
+        return f"FreeHand on {self.dicom.file.name}"
+
+
+class Ruler(BaseShape):
+    TYPE = "ruler"
+    max_coordinates = 2
+    min_coordinates = 2
+
+    def __str__(self):
+        return f"Ruler on {self.dicom.file.name}"

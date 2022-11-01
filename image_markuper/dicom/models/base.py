@@ -6,8 +6,14 @@ from utils.files import media_upload_path
 User = get_user_model()
 
 
-class ListOfDicom(models.Model):
-    pass
+class Project(models.Model):
+    user = models.ForeignKey(User, related_name="projects", on_delete=models.CASCADE)
+    slug = models.SlugField(max_length=10)
+
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s project"
 
 
 class Dicom(models.Model):
@@ -22,8 +28,8 @@ class Dicom(models.Model):
     uploaded = models.DateTimeField(auto_now_add=True)
 
     pathology_type = models.IntegerField(choices=PathologyType.choices, default=0)
-    list = models.ForeignKey(
-        ListOfDicom, related_name="files", null=True, on_delete=models.SET_NULL
+    project = models.ForeignKey(
+        Project, related_name="files", null=True, on_delete=models.SET_NULL
     )
 
     def __str__(self):

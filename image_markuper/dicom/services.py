@@ -5,18 +5,23 @@ import zipfile
 from pathlib import Path
 
 import magic
-from dicom.models import Dicom, ListOfDicom
+from dicom.models import Coordinate, Dicom, Project
 from django.core.files import File
 from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
 from utils.generators import generate_charset
 
 
-def process_files(files: list[TemporaryUploadedFile | InMemoryUploadedFile], user):
-    d_list = ListOfDicom.objects.create()
+def process_files(
+    files: list[TemporaryUploadedFile | InMemoryUploadedFile], user, slug=None
+):
+    if slug:
+        project = Project.objects.get(slug=slug)
+    else:
+        project = Project.objects.create(user=user)
     for file in files:
         content_type = magic.from_file(file.temporary_file_path())
         if content_type == "DICOM medical imaging data":
-            Dicom.objects.create(file=file, list=d_list, user=user)
+            Dicom.objects.create(file=file, project=project, user=user)
         elif "Zip" in content_type:
             dit_path = f"/tmp/{generate_charset(10)}"
             os.mkdir(dit_path)
@@ -32,8 +37,17 @@ def process_files(files: list[TemporaryUploadedFile | InMemoryUploadedFile], use
                         with path.open(mode="rb") as f:
                             Dicom.objects.create(
                                 file=File(f, name=file_in_d.split("/")[-1]),
-                                list=d_list,
+                                project=project,
                                 user=user,
                             )
             shutil.rmtree(dit_path)
-    return d_list
+    return project
+
+
+def create_coordinate(coordinates, obj):
+    for coordinate in coordinates:
+        Coordinate.objects.create(
+            x=coordinate["x"],
+            y=coordinate["y"],
+            shape=obj,
+        )

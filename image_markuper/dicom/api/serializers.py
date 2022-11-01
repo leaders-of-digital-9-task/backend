@@ -1,16 +1,17 @@
-from dicom.models import Circle, Coordinate, Dicom, Roi
+from dicom.models import (
+    BaseShape,
+    Circle,
+    Coordinate,
+    Dicom,
+    FreeHand,
+    Project,
+    Roi,
+    Ruler,
+)
+from dicom.services import create_coordinate
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
-
-
-def create_coordinate(coordinates, obj):
-    for coordinate in coordinates:
-        Coordinate.objects.create(
-            x=coordinate["x"],
-            y=coordinate["y"],
-            shape=obj,
-        )
 
 
 class CoordinateSerializer(serializers.ModelSerializer):
@@ -34,13 +35,43 @@ class ListDicomSerializer(serializers.ModelSerializer):
 
 
 class BaseShapeSerializer(serializers.Serializer):
-    type = serializers.ChoiceField(choices=["circle", "roi"])
+    model = BaseShape
+
+    type = serializers.ChoiceField(choices=["circle", "roi", "free_hand"])
     image_number = serializers.IntegerField()
     coordinates = CoordinateSerializer(many=True)
 
+    def create(self, validated_data):
+        if self.model.max_coordinates:
+            if len(validated_data["coordinates"]) > self.model.max_coordinates:
+                raise serializers.ValidationError
+        if self.model.min_coordinates:
+            if len(validated_data["coordinates"]) < self.model.min_coordinates:
+                raise serializers.ValidationError
+        dicom = get_object_or_404(
+            Dicom, slug=self.context["request"].parser_context["kwargs"]["slug"]
+        )
+        obj = self.model.objects.create(
+            dicom=dicom, image_number=validated_data["image_number"]
+        )
+
+        create_coordinate(validated_data["coordinates"], obj)
+        return obj
+
+    def update(self, obj, validated_data):
+        Coordinate.objects.filter(shape=obj).delete()
+        if self.model.max_coordinates:
+            if len(validated_data["coordinates"]) > self.model.max_coordinates:
+                raise serializers.ValidationError
+        if self.model.min_coordinates:
+            if len(validated_data["coordinates"]) < self.model.min_coordinates:
+                raise serializers.ValidationError
+        create_coordinate(validated_data["coordinates"], obj)
+        return obj
+
 
 class BaseShapeLayerSerializer(serializers.Serializer):
-    type = serializers.ChoiceField(choices=["circle", "roi"])
+    type = serializers.ChoiceField(choices=["circle", "roi", "free_hand"])
     radius = serializers.FloatField(required=False)
     coordinates = CoordinateSerializer(many=True)
 
@@ -58,31 +89,34 @@ class DicomSerializer(serializers.ModelSerializer):
         fields = ["file", "uploaded", "pathology_type", "shapes"]
 
 
-class RoiSerializer(serializers.ModelSerializer):
+class RoiSerializer(BaseShapeSerializer, serializers.ModelSerializer):
     coordinates = CoordinateSerializer(many=True)
+    model = Roi
 
     class Meta:
         model = Roi
         fields = ["id", "image_number", "coordinates"]
         extra_kwargs = {"id": {"read_only": True}}
 
-    def create(self, validated_data):
-        if "coordinates" not in validated_data:
-            raise serializers.ValidationError
-        dicom = get_object_or_404(
-            Dicom, slug=self.context["request"].parser_context["kwargs"]["slug"]
-        )
-        roi = Roi.objects.create(
-            dicom=dicom, image_number=validated_data["image_number"]
-        )
 
-        create_coordinate(validated_data["coordinates"], roi)
-        return roi
+class FreeHandSerializer(BaseShapeSerializer, serializers.ModelSerializer):
+    coordinates = CoordinateSerializer(many=True)
+    model = FreeHand
 
-    def update(self, obj: Circle, validated_data):
-        Coordinate.objects.filter(shape=obj).delete()
-        create_coordinate(validated_data["coordinates"], obj)
-        return obj
+    class Meta:
+        model = FreeHand
+        fields = ["id", "image_number", "coordinates"]
+        extra_kwargs = {"id": {"read_only": True}}
+
+
+class RulerSerializer(BaseShapeSerializer, serializers.ModelSerializer):
+    coordinates = CoordinateSerializer(many=True)
+    model = Ruler
+
+    class Meta:
+        model = FreeHand
+        fields = ["id", "image_number", "coordinates"]
+        extra_kwargs = {"id": {"read_only": True}}
 
 
 class CircleSerializer(serializers.ModelSerializer):
@@ -122,3 +156,24 @@ class CircleSerializer(serializers.ModelSerializer):
 
 class SmartFileUploadSerializer(serializers.Serializer):
     file = serializers.FileField()
+
+
+class ListProjectSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        view_name="get_update_delete_project", lookup_field="slug"
+    )
+
+    class Meta:
+        model = Project
+        fields = ["url", "created"]
+        extra_kwargs = {
+            "created": {"read_only": True},
+        }
+
+
+class ProjectSerializer(serializers.ModelSerializer):
+    files = ListDicomSerializer(many=True)
+
+    class Meta:
+        model = Project
+        fields = ["files", "created"]
