@@ -102,7 +102,7 @@ class SmartFileUploadApi(GenericAPIView):
             request.user,
         )
         return Response(
-            ListDicomSerializer(project.files.all(), many=True).data,
+            ProjectSerializer(project, context={"request": request}).data,
             status=status.HTTP_201_CREATED,
         )
 
@@ -125,7 +125,7 @@ class AddDicomProjectApi(GenericAPIView):
             slug,
         )
         return Response(
-            ListDicomSerializer(project.files.all(), many=True).data,
+            ProjectSerializer(project, context={"request": request}).data,
             status=status.HTTP_201_CREATED,
         )
 
@@ -134,17 +134,16 @@ class DeleteDicomProjectApi(GenericAPIView):
     serializer_class = SmartFileUploadSerializer
 
     @extend_schema(
-        operation_id="add_dicom_to_project",
+        operation_id="delete_dicom_from_project",
         request=None,
         responses={200: ListDicomSerializer(many=True)},
     )
     def delete(self, request, slug, dicom_slug):
         project = get_object_or_404(Project, slug=slug)
         project.files.filter(slug=dicom_slug).delete()
+
         return Response(
-            ListDicomSerializer(
-                project.files.all(), many=True, context={"request": request}
-            ).data,
+            ProjectSerializer(project, context={"request": request}).data,
             status=status.HTTP_200_OK,
         )
 

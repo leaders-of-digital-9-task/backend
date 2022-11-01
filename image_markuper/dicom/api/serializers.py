@@ -176,4 +176,4 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ["files", "created"]
+        fields = ["files", "slug", "created"]
