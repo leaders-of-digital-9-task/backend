@@ -165,10 +165,14 @@ class ListProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ["url", "created"]
+        fields = ["slug", "url", "created"]
         extra_kwargs = {
+            "slug": {"read_only": True},
             "created": {"read_only": True},
         }
+
+    def create(self, validated_data):
+        return Project.objects.create(user=self.context["request"].user)
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -177,3 +181,6 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ["files", "slug", "created"]
+
+    def create(self, validated_data):
+        return Project.objects.create(user=self.context["request"].user)
