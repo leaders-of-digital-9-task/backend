@@ -177,3 +177,22 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ["files", "slug", "created"]
+
+
+
+class PatologyGenerateSerializer(serializers.Serializer):
+    project_slug = serializers.CharField()
+    points = serializers.ListField(child=CoordinateSerializer())
+    depth = serializers.ListField(child=serializers.IntegerField())
+
+
+class VoxelSerializer(serializers.Serializer):
+    x = serializers.IntegerField()
+    y = serializers.IntegerField()
+    z = serializers.IntegerField()
+    value = serializers.IntegerField()
+
+
+class PointCloudSerializer(serializers.Serializer):
+    voxels = serializers.ListField(child=serializers.IntegerField(), read_only=True)
+    project_slug = serializers.CharField(write_only=True)
