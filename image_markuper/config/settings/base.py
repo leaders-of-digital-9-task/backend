@@ -5,7 +5,7 @@ from pathlib import Path
 
 import environ
 
-ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
+ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent.parent.parent
 # image_markuper/
 APPS_DIR = ROOT_DIR / "image_markuper"
 env = environ.Env()
@@ -71,11 +71,7 @@ THIRD_PARTY_APPS = [
     "drf_spectacular",
 ]
 
-LOCAL_APPS = [
-    "image_markuper.users",
-    "image_markuper.dicom"
-    # Your stuff: custom apps go here
-]
+LOCAL_APPS = ["users", "dicom"]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 

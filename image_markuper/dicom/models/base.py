@@ -9,6 +9,7 @@ User = get_user_model()
 class Project(models.Model):
     user = models.ForeignKey(User, related_name="projects", on_delete=models.CASCADE)
     slug = models.SlugField(max_length=10)
+    stl = models.FileField(blank=True)
 
     created = models.DateTimeField(auto_now_add=True)
 

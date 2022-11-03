@@ -27,7 +27,7 @@ def process_files(
         if content_type == "DICOM medical imaging data":
             Dicom.objects.create(file=file, project=project, user=user)
         elif "Zip" in content_type:
-            dit_path = f"tmp/{generate_charset(10)}"
+            dit_path = f"/tmp/{generate_charset(10)}"
             os.mkdir(dit_path)
             with zipfile.ZipFile(file.temporary_file_path(), "r") as zip_ref:
                 zip_ref.extractall(dit_path)
@@ -96,7 +96,7 @@ def generate_3d_point_cloud(project_slug: str):
     return point_clouds
 
 
-def generate_3d_model(project: Project, thr=800) -> str:
+def generate_3d_model(project: Project, thr=800):
     image = []
     for file in project.files.all():
         image.append(pydicom.dcmread(file.file.path).pixel_array)
@@ -111,4 +111,9 @@ def generate_3d_model(project: Project, thr=800) -> str:
 
     pth = f"/tmp/{generate_charset(4)}.stl"
     solid.save(pth)
-    return pth
+    path = Path(pth)
+    with path.open(mode="rb") as f:
+        project.stl = File(f, name=pth.split("/")[-1])
+        project.save()
+
+    os.remove(pth)

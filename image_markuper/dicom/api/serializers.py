@@ -180,7 +180,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ["files", "slug", "created"]
+        fields = ["files", "slug", "created", "stl"]
 
 
 class PatologyGenerateSerializer(serializers.Serializer):
