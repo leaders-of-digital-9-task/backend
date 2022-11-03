@@ -299,7 +299,7 @@ SPECTACULAR_SETTINGS = {
     "SERVE_PERMISSIONS": ["rest_framework.permissions.AllowAny"],
     "SERVERS": [
         {"url": "https://dev.akarpov.ru", "description": "Development server"},
-        {"url": "https//127.0.0.1:8000", "description": "Development server"},
+        {"url": "http://127.0.0.1:8000", "description": "Development server"},
     ],
 }
 
