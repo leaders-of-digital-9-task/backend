@@ -6,7 +6,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
 from ..models import Circle, Dicom, Project, Roi
-from ..services import generate_3d_point_cloud, get_bbox, process_files
+from ..services import process_files
 from .serializers import (
     BaseShapeLayerSerializer,
     BaseShapeSerializer,
@@ -15,13 +15,12 @@ from .serializers import (
     FreeHandSerializer,
     ListDicomSerializer,
     ListProjectSerializer,
-    PointCloudSerializer,
+    PatologyGenerateSerializer,
     ProjectSerializer,
     RoiSerializer,
     RulerSerializer,
     SmartFileUploadSerializer,
     create_coordinate,
-    PatologyGenerateSerializer
 )
 
 
@@ -224,17 +223,6 @@ class GeneratePatology(generics.CreateAPIView):
     serializer_class = PatologyGenerateSerializer
 
     def create(self, request, *args, **kwargs):
-        data = self.get_serializer(request.data).data
-        bbox = get_bbox(data['project_slug'], data['points'], data['depth'])
+        # data = self.get_serializer(request.data).data
+        # bbox = get_bbox(data["project_slug"], data["points"], data["depth"])
         return Response(data={}, status=200)
-
-
-class GeneratePointCloud(generics.CreateAPIView):
-    serializer_class = PointCloudSerializer
-
-    def create(self, request, *args, **kwargs):
-        print(request.data)
-        data = request.data
-        point_cloud = generate_3d_point_cloud(data['project_slug'])
-        print(point_cloud[0:5])
-        return Response(data={'voxels': point_cloud}, status=200)

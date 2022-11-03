@@ -5,6 +5,7 @@ from dicom.api.views import (
     CreateRoiApi,
     CreateRulerApi,
     DeleteDicomProjectApi,
+    GeneratePatology,
     ListCreateDicomApi,
     ListCreateProjectApi,
     ListUpdateDicomImageNumberApi,
@@ -15,8 +16,6 @@ from dicom.api.views import (
     RetrieveUpdateDeleteRoiApi,
     RetrieveUpdateDeleteRulerApi,
     SmartFileUploadApi,
-    GeneratePatology,
-    GeneratePointCloud
 )
 from django.urls import include, path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -123,12 +122,11 @@ urlpatterns = [
         ),
     ),
     path(
-        'generate/',
+        "generate/",
         include(
             [
-                path('patology', GeneratePatology.as_view(), name='generate_patology'),
-                path('point_cloud', GeneratePointCloud.as_view(), name='generate_patology')
+                path("patology", GeneratePatology.as_view(), name="generate_patology"),
             ]
         ),
-    )
+    ),
 ]

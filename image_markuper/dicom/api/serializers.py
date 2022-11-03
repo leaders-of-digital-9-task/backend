@@ -181,3 +181,9 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ["files", "slug", "created"]
+
+
+class PatologyGenerateSerializer(serializers.Serializer):
+    project_slug = serializers.CharField()
+    points = serializers.ListField(child=CoordinateSerializer())
+    depth = serializers.ListField(child=serializers.IntegerField())
