@@ -7,6 +7,7 @@ from pathlib import Path
 import magic
 import numpy as np
 import pydicom
+from dicom import tasks
 from dicom.models import Coordinate, Dicom, Project
 from django.core.files import File
 from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
@@ -45,6 +46,7 @@ def process_files(
                                 user=user,
                             )
             shutil.rmtree(dit_path)
+        tasks.process_project.apply_async(kwargs={"pk": project.pk}, countdown=3)
     return project
 
 
