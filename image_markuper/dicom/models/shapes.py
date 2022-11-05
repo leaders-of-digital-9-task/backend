@@ -1,4 +1,4 @@
-from dicom.models import Dicom
+from dicom.models import Layer
 from django.db import models
 from polymorphic.models import PolymorphicModel
 
@@ -7,8 +7,7 @@ class BaseShape(PolymorphicModel):
     TYPE = "no_type"
     min_coordinates = None
     max_coordinates = None
-    dicom = models.ForeignKey(Dicom, related_name="shapes", on_delete=models.CASCADE)
-    image_number = models.IntegerField()
+    layer = models.ForeignKey(Layer, related_name="shapes", on_delete=models.CASCADE)
 
     def serialize_self(self):
         return {
