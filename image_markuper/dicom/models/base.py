@@ -82,7 +82,15 @@ class Dicom(models.Model):
 
     @property
     def shapes(self):
-        return BaseShape.objects.filter(layer_fk__dicom=self)
+        qs = BaseShape.objects.filter(layer_fk__dicom=self)
+        if qs.exists():
+            return qs
+        return None
+
+    def delete_shapes(self):
+        shapes = self.shapes
+        if shapes:
+            [x.destroy() for x in shapes]
 
     def get_layers(self):
         return self.layers.filter(parent__isnull=True).first().serialize_self()

@@ -33,6 +33,12 @@ class BaseShape(PolymorphicModel):
     def coordinates(self) -> [(int, int)]:
         return self.shape_coordinates.all().values("x", "y")
 
+    def destroy(self):
+        try:
+            self.delete()
+        except BaseShape.DoesNotExist:
+            pass
+
     def __str__(self):
         return f"{self.TYPE} on {self.layer}"
 
@@ -51,6 +57,7 @@ class Coordinate(models.Model):
 
 
 class Circle(BaseShape):
+    TYPE = "circle"
     radius = models.FloatField()
     max_coordinates = 1
 
