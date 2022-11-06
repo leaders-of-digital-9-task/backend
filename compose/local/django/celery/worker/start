@@ -3,5 +3,6 @@
 set -o errexit
 set -o nounset
 
+cd /app/image_markuper
 
-watchfiles celery.__main__.main --args '-A config.celery_app worker -l INFO'
+exec celery -A config worker --loglevel=INFO

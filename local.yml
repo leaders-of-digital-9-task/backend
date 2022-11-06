@@ -36,23 +36,6 @@ services:
     env_file:
       - ./.envs/.local/.postgres
 
-  docs:
-    image: image_markuper_local_docs
-    container_name: image_markuper_local_docs
-    platform: linux/x86_64
-    build:
-      context: .
-      dockerfile: ./compose/local/docs/Dockerfile
-    env_file:
-      - ./.envs/.local/.django
-    volumes:
-      - ./docs:/docs:z
-      - ./config:/app/config:z
-      - ./image_markuper:/app/image_markuper:z
-    ports:
-      - "9000:9000"
-    command: /start-docs
-
   redis:
     image: redis:6
     container_name: image_markuper_local_redis
@@ -66,16 +49,6 @@ services:
       - postgres
     ports: []
     command: /start-celeryworker
-
-  celerybeat:
-    <<: *django
-    image: image_markuper_local_celerybeat
-    container_name: image_markuper_local_celerybeat
-    depends_on:
-      - redis
-      - postgres
-    ports: []
-    command: /start-celerybeat
 
   flower:
     <<: *django

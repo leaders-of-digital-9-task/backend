@@ -61,4 +61,4 @@ COPY ./compose/local/docs/start /start-docs
 RUN sed -i 's/\r$//g' /start-docs
 RUN chmod +x /start-docs
 
-WORKDIR /docs
+WORKDIR /app/image_markuper/docs

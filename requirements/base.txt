@@ -7,7 +7,6 @@ whitenoise==6.2.0  # https://github.com/evansd/whitenoise
 redis==4.3.4  # https://github.com/redis/redis-py
 hiredis==2.0.0  # https://github.com/redis/hiredis-py
 celery==5.2.7  # pyup: < 6.0  # https://github.com/celery/celery
-django-celery-beat==2.4.0  # https://github.com/celery/django-celery-beat
 flower==1.2.0  # https://github.com/mher/flower
 
 # Django
@@ -25,7 +24,7 @@ django-cors-headers==3.13.0 # https://github.com/adamchainz/django-cors-headers
 djangorestframework-simplejwt==5.2.2
 # DRF-spectacular for api documentation
 drf-spectacular==0.24.2  # https://github.com/tfranzel/drf-spectacular
-
+django-polymorphic==3.1.0
 
 pydicom==2.3.0
 numpy==1.23.4

@@ -4,4 +4,6 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
+cd /app/image_markuper
+
 make livehtml
