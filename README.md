@@ -26,3 +26,6 @@ $ docker-compose -f local.yml up
 
 ### Докуменатция
 https://dev3.akarpov.ru/api/redoc/
+
+### ML
+https://drive.google.com/drive/folders/1aLcZFkOKFeUNMcROPKAFr5EwRgw3FpSC?usp=sharing
