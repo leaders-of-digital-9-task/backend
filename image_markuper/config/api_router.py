@@ -66,7 +66,7 @@ urlpatterns = [
                     name="create_ruler",
                 ),
                 path(
-                    "<str:slug>/<int:layer>",
+                    "shapes/<str:dicom_slug>",
                     ListUpdateDicomImageNumberApi.as_view(),
                     name="update_dicom_layer",
                 ),

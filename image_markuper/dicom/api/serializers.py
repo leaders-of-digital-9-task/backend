@@ -116,6 +116,19 @@ class BaseShapeLayerSerializer(serializers.Serializer):
     radius = serializers.FloatField(required=False)
     coordinates = CoordinateSerializer(many=True)
 
+    def validate_layer(self, val):
+        if val:
+            return get_object_or_404(Layer, slug=val).slug
+        return (
+            get_object_or_404(
+                Dicom,
+                slug=self.context["request"].parser_context["kwargs"]["dicom_slug"],
+            )
+            .layers.filter(parent__isnull=True)
+            .first()
+            .slug
+        )
+
 
 class LayerChildSerializer(serializers.ModelSerializer):
     class Meta:
@@ -159,7 +172,7 @@ class LayerSerializer(serializers.ModelSerializer):
 class DicomSerializer(serializers.ModelSerializer):
     file = serializers.FileField()
     shapes = serializers.SerializerMethodField("get_dicom_shapes")
-    layers = serializers.SerializerMethodField("get_dicom_layers")
+    layers = serializers.SerializerMethodField("get_dicom_layers", read_only=True)
 
     @extend_schema_field(field=BaseShapeSerializer(many=True))
     def get_dicom_shapes(self, obj):

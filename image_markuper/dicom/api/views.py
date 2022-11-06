@@ -5,7 +5,7 @@ from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
-from ..models import Circle, Dicom, Layer, Project, Roi
+from ..models import Circle, Dicom, FreeHand, Layer, Project, Roi, Ruler
 from ..services import process_files
 from .serializers import (
     BaseShapeLayerSerializer,
@@ -155,54 +155,53 @@ class ListUpdateDicomImageNumberApi(GenericAPIView):
 
     @extend_schema(
         request=None,
-        responses={200: BaseShapeSerializer(many=True)},
+        responses={200: DicomSerializer},
         operation_id="get_dicom_layer",
     )
-    def get(self, request, slug, layer):
-        shapes = [
-            x.serialize_self_without_layer()
-            for x in get_object_or_404(Dicom, slug=slug).shapes.filter(
-                image_number=layer
-            )
-        ]
-        return Response(shapes, status=status.HTTP_200_OK)
+    def get(self, request, dicom_slug):
+        return Response(
+            DicomSerializer(
+                get_object_or_404(Dicom, slug=dicom_slug), context={"request": request}
+            ).data,
+            status=status.HTTP_200_OK,
+        )
 
     @extend_schema(
         request=BaseShapeLayerSerializer(many=True),
         responses={201: DicomSerializer},
         operation_id="update_dicom_layer",
     )
-    def put(self, request, slug, layer):
-        dicom = get_object_or_404(Dicom, slug=slug)
-        dicom.shapes.filter(image_number=layer).delete()
-        serializer = BaseShapeLayerSerializer(data=request.data, many=True)
+    def put(self, request, dicom_slug):
+        dicom = get_object_or_404(Dicom, slug=dicom_slug)
+        dicom.shapes.delete()
+        serializer = BaseShapeLayerSerializer(
+            data=request.data, many=True, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
         for shape in serializer.data:
+            layer = Layer.objects.get(slug=shape["layer"])
             if shape["type"] == "circle":
-                obj = Circle.objects.create(
-                    dicom=dicom, image_number=layer, radius=shape["radius"]
-                )
-                if len(shape["coordinates"]) > 1:
-                    raise ValidationError
+                obj = Circle.objects.create(layer_fk=layer, radius=shape["radius"])
             elif shape["type"] == "roi":
-                obj = Roi.objects.create(dicom=dicom, image_number=layer)
+                obj = Roi.objects.create(layer_fk=layer)
+            elif shape["type"] == "free_hand":
+                obj = FreeHand.objects.create(layer_fk=layer)
+            else:
+                obj = Ruler.objects.create(layer_fk=layer)
             create_coordinate(shape["coordinates"], obj)
-        shapes = [
-            x.serialize_self_without_layer()
-            for x in get_object_or_404(Dicom, slug=slug).shapes.filter(
-                image_number=layer
-            )
-        ]
-        return Response(shapes, status=status.HTTP_200_OK)
+        return Response(
+            DicomSerializer(dicom, context={"request": request}).data,
+            status=status.HTTP_200_OK,
+        )
 
     @extend_schema(
         request=None,
         responses={204: None},
         operation_id="delete_dicom_layer",
     )
-    def delete(self, request, slug, layer):
-        dicom = get_object_or_404(Dicom, slug=slug)
-        dicom.shapes.filter(image_number=layer).delete()
+    def delete(self, request, dicom_slug):
+        dicom = get_object_or_404(Dicom, slug=dicom_slug)
+        dicom.shapes.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -210,6 +209,8 @@ class ListCreateProjectApi(generics.ListCreateAPIView):
     serializer_class = ListProjectSerializer
 
     def get_queryset(self):
+        if self.request.user.is_staff:
+            return Project.objects.all()
         return Project.objects.filter(user=self.request.user)
 
     @extend_schema(
