@@ -43,7 +43,6 @@ def process_files(
                             Dicom.objects.create(
                                 file=File(f, name=file_in_d.split("/")[-1]),
                                 project=project,
-                                user=user,
                             )
             shutil.rmtree(dit_path)
         tasks.process_project.apply_async(kwargs={"pk": project.pk}, countdown=3)

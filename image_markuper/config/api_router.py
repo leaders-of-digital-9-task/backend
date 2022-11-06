@@ -2,6 +2,7 @@ from dicom.api.views import (
     AddDicomProjectApi,
     CreateCircleApi,
     CreateFreeHandApi,
+    CreateLayerApi,
     CreateRoiApi,
     CreateRulerApi,
     DeleteDicomProjectApi,
@@ -12,6 +13,7 @@ from dicom.api.views import (
     RetrieveUpdateDeleteCircleApi,
     RetrieveUpdateDeleteDicomApi,
     RetrieveUpdateDeleteFreeHandApi,
+    RetrieveUpdateDeleteLayerApi,
     RetrieveUpdateDeleteProjectApi,
     RetrieveUpdateDeleteRoiApi,
     RetrieveUpdateDeleteRulerApi,
@@ -126,6 +128,19 @@ urlpatterns = [
         include(
             [
                 path("patology", GeneratePatology.as_view(), name="generate_patology"),
+            ]
+        ),
+    ),
+    path(
+        "layer/<str:dicom_slug>/",
+        include(
+            [
+                path("", CreateLayerApi.as_view(), name="create_layer"),
+                path(
+                    "<str:slug>",
+                    RetrieveUpdateDeleteLayerApi.as_view(),
+                    name="get_update_delete_project",
+                ),
             ]
         ),
     ),

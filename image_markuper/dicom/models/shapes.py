@@ -1,4 +1,3 @@
-from dicom.models import Layer
 from django.db import models
 from polymorphic.models import PolymorphicModel
 
@@ -7,14 +6,16 @@ class BaseShape(PolymorphicModel):
     TYPE = "no_type"
     min_coordinates = None
     max_coordinates = None
-    layer = models.ForeignKey(Layer, related_name="shapes", on_delete=models.CASCADE)
+    layer_fk = models.ForeignKey(
+        "dicom.Layer", related_name="shapes", on_delete=models.CASCADE
+    )
 
     def serialize_self(self):
         return {
             "id": self.id,
             "type": self.TYPE,
-            "image_number": self.image_number,
             "coordinates": self.coordinates,
+            "layer": self.layer,
         }
 
     def serialize_self_without_layer(self):
@@ -25,11 +26,15 @@ class BaseShape(PolymorphicModel):
         }
 
     @property
+    def layer(self):
+        return self.layer_fk.slug
+
+    @property
     def coordinates(self) -> [(int, int)]:
         return self.shape_coordinates.all().values("x", "y")
 
     def __str__(self):
-        return self.dicom.file.name
+        return f"{self.TYPE} on {self.layer}"
 
 
 class Coordinate(models.Model):
@@ -53,7 +58,6 @@ class Circle(BaseShape):
         return {
             "id": self.id,
             "type": "circle",
-            "image_number": self.image_number,
             "radius": self.radius,
             "coordinates": self.coordinates,
         }
@@ -66,28 +70,16 @@ class Circle(BaseShape):
             "coordinates": self.coordinates,
         }
 
-    def __str__(self):
-        return f"circle on {self.dicom.file.name}"
-
 
 class Roi(BaseShape):
     TYPE = "roi"
 
-    def __str__(self):
-        return f"Roi on {self.dicom.file.name}"
-
 
 class FreeHand(BaseShape):
     TYPE = "free_hand"
-
-    def __str__(self):
-        return f"FreeHand on {self.dicom.file.name}"
 
 
 class Ruler(BaseShape):
     TYPE = "ruler"
     max_coordinates = 2
     min_coordinates = 2
-
-    def __str__(self):
-        return f"Ruler on {self.dicom.file.name}"

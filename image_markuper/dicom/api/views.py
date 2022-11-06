@@ -5,7 +5,7 @@ from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
-from ..models import Circle, Dicom, Project, Roi
+from ..models import Circle, Dicom, Layer, Project, Roi
 from ..services import process_files
 from .serializers import (
     BaseShapeLayerSerializer,
@@ -13,6 +13,7 @@ from .serializers import (
     CircleSerializer,
     DicomSerializer,
     FreeHandSerializer,
+    LayerSerializer,
     ListDicomSerializer,
     ListProjectSerializer,
     PatologyGenerateSerializer,
@@ -29,12 +30,12 @@ class ListCreateDicomApi(generics.ListCreateAPIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def get_queryset(self):
-        return Dicom.objects.filter(user=self.request.user)
+        return Dicom.objects.all()
 
 
 class RetrieveUpdateDeleteDicomApi(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
-        return Dicom.objects.filter(user=self.request.user)
+        return Dicom.objects.all()
 
     serializer_class = DicomSerializer
     parser_classes = [MultiPartParser, FormParser]
@@ -211,6 +212,23 @@ class ListCreateProjectApi(generics.ListCreateAPIView):
     def get_queryset(self):
         return Project.objects.filter(user=self.request.user)
 
+    @extend_schema(
+        description="""(0, 'Без патологий'),
+ (1, 'COVID-19; все доли; многочисленные; размер любой'),
+ (2, 'COVID-19; Нижняя доля правого лёгкого, Нижняя доля левого лёгкого'),
+ (3, 'Немногочисленные; 10-20 мм'),
+ (4, 'Рак лёгкого; Нижняя доля правого лёгкого, Единичное; 10-20 мм'),
+ (5, 'Рак лёгкого; Средняя доля правого лёгкого, Единичное; >20 мм'),
+ (6, 'Рак лёгкого; Нижняя доля левого лёгкого, Единичное; 10-20 мм'),
+ (7, 'Рак лёгкого; Верхняя доля правого лёгкого, Единичное; 5-10 мм'),
+ (8, 'Рак лёгкого; Верхняя доля левого лёгкого, Единичное; 5-10 мм'),
+ (9, 'Метастатическое поражение лёгких; Все доли; Многочисленные; 5-10 мм'),
+ (10, 'Метастатическое поражение лёгких; Все доли; Многочисленные; 10-20 мм'),
+ (11, 'Метастатическое поражение лёгких; Все доли; Немногочисленные; 5-10 мм')"""
+    )
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
 
 class RetrieveUpdateDeleteProjectApi(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ProjectSerializer
@@ -226,3 +244,14 @@ class GeneratePatology(generics.CreateAPIView):
         # data = self.get_serializer(request.data).data
         # bbox = get_bbox(data["project_slug"], data["points"], data["depth"])
         return Response(data={}, status=200)
+
+
+class CreateLayerApi(generics.CreateAPIView):
+    serializer_class = LayerSerializer
+
+
+class RetrieveUpdateDeleteLayerApi(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = LayerSerializer
+    queryset = Layer.objects.all()
+
+    lookup_field = "slug"

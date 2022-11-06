@@ -1,3 +1,4 @@
+from dicom.models.shapes import BaseShape
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
@@ -75,6 +76,13 @@ class Dicom(models.Model):
     def __str__(self):
         return self.file.name
 
+    @property
+    def shapes(self):
+        return BaseShape.objects.filter(layer_fk__dicom=self)
+
+    def get_layers(self):
+        return self.layers.filter(parent__isnull=True).first().serialize_self()
+
     def get_absolute_url(self):
         return reverse("get_update_delete_dicom", kwargs={"slug": self.slug})
 
@@ -86,6 +94,13 @@ class Layer(models.Model):
     dicom = models.ForeignKey(Dicom, related_name="layers", on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=8)
+
+    def serialize_self(self):
+        return {
+            "slug": self.slug,
+            "name": self.name,
+            "children": [x.serialize_self() for x in self.children.all()],
+        }
 
     def __str__(self):
         return f"layer on {self.dicom}"
