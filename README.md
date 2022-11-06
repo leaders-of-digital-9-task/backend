@@ -22,3 +22,7 @@ $ docker-compose -f local.yml up
 - celery + [celery flower](http://127.0.0.1:5555) для асинхронной обработки STL и просмотра задач
 - документация API в [swagger](http://127.0.0.1:8000/api/docs/) и [redoc](http://127.0.0.1:8000/api/redoc/)
 - линтеры и workflow-ы для разработки
+
+
+### Докуменатция
+https://dev3.akarpov.ru/api/redoc/
