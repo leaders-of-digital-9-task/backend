@@ -62,6 +62,10 @@ class Project(models.Model):
     def __str__(self):
         return f"{self.user.username}'s project"
 
+    @property
+    def user_username(self):
+        return self.user.username
+
 
 class Dicom(models.Model):
     slug = models.SlugField()

@@ -206,7 +206,12 @@ class ListUpdateDicomImageNumberApi(GenericAPIView):
 
 
 class ListCreateProjectApi(generics.ListCreateAPIView):
-    serializer_class = ListProjectSerializer
+    def get_serializer_class(self):
+        if self.request.user.is_staff:
+            s = ListProjectSerializer
+            s.Meta.fields.append("user_username")
+            return s
+        return ListProjectSerializer
 
     def get_queryset(self):
         if self.request.user.is_staff:
