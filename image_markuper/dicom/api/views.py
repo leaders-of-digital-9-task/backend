@@ -173,7 +173,7 @@ class ListUpdateDicomImageNumberApi(GenericAPIView):
     )
     def put(self, request, dicom_slug):
         dicom = get_object_or_404(Dicom, slug=dicom_slug)
-        dicom.shapes.delete()
+        [x.delete() for x in dicom.shapes]
         serializer = BaseShapeLayerSerializer(
             data=request.data, many=True, context={"request": request}
         )

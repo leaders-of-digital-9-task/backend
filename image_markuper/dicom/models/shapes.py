@@ -58,6 +58,7 @@ class Circle(BaseShape):
         return {
             "id": self.id,
             "type": "circle",
+            "layer": self.layer,
             "radius": self.radius,
             "coordinates": self.coordinates,
         }

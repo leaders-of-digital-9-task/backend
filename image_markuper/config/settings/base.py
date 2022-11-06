@@ -294,7 +294,7 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "SERVE_PERMISSIONS": ["rest_framework.permissions.AllowAny"],
     "SERVERS": [
-        {"url": "https://dev.akarpov.ru", "description": "Development server"},
+        {"url": "https://dev2.akarpov.ru", "description": "Development server"},
         {"url": "http://127.0.0.1:8000", "description": "Development server"},
     ],
 }
